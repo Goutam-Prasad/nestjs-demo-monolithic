@@ -29,3 +29,4 @@ export class TasksService {
     async getTasksWithFilters(filterDto: SearchTaskDto): Promise<Task[]> {
         return await this.taskRepository.findWithFilters(filterDto);
     }
+}
