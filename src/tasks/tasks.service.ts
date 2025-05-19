@@ -1,35 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { Task, TaskStatus } from './tasks.model';
-import { randomUUID } from 'crypto';
+import { Task } from './task.entity';
+import { TaskRepository } from './tasks.repository';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { SearchTaskDto } from './dto/search-task.dto';
 
 @Injectable()
 export class TasksService {
-    private tasks:Task[]=[];
+    constructor(
+        private readonly taskRepository: TaskRepository,
+    ) { }
 
-    getAllTasks():Task[]{
-        return this.tasks;
-    }
-    getTaskById(id:string):Task{
-        return this.tasks.find((task)=>task.id===id)
-
-    }
-    createNewTask(createTaskDto:CreateTaskDto):Task{
-        const {title,description}=createTaskDto;
-        const task:Task={
-            id:randomUUID(),
-            title,
-            description,
-            status:TaskStatus.OPEN
-        }
-        console.log({task})
-        this.tasks.push(task);
-        return task;
+    async getTaskByID(id: string): Promise<Task> {
+        return await this.taskRepository.getTaskByID(id);
     }
 
-    deleteTaskById(id:string){
-        let deletedTask:Task=this.tasks.find((task)=>task.id===id);
-        this.tasks.filter((task)=>task.id!=id);
-        return deletedTask;
+    async createNewTask(createTaskDto: CreateTaskDto): Promise<Task> {
+        return await this.taskRepository.createTask(createTaskDto);
     }
-}
+
+    async deleteTaskById(id: string): Promise<Task> {
+        return await this.taskRepository.deleteTaskById(id);
+    }
+
+    async getAllTasks(): Promise<Task[]> {
+        return await this.taskRepository.find();
+    }
+
+    async getTasksWithFilters(filterDto: SearchTaskDto): Promise<Task[]> {
+        return await this.taskRepository.findWithFilters(filterDto);
+    }
