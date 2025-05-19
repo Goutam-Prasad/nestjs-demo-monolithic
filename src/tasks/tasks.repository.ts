@@ -38,7 +38,6 @@ export class TaskRepository extends Repository<Task> {
         await this.remove(task);
         return task;
     }
-
     async findWithFilters(filterDto: SearchTaskDto): Promise<Task[]> {
         const { status, search } = filterDto;
         const query = this.createQueryBuilder('task');
