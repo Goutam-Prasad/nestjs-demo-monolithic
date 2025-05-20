@@ -4,6 +4,7 @@ import { Task } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskStatus } from './task.status-enum';
 import { SearchTaskDto } from './dto/search-task.dto';
+import { User } from 'src/auth/user.entity';
 
 @Injectable()
 export class TaskRepository extends Repository<Task> {
@@ -11,36 +12,38 @@ export class TaskRepository extends Repository<Task> {
         super(Task, dataSource.createEntityManager());
     }
 
-    async createTask({ title, description }: CreateTaskDto): Promise<Task> {
+    async createTask({ title, description }: CreateTaskDto, user: User): Promise<Task> {
         const task = this.create({
             title,
             description,
             status: TaskStatus.OPEN,
+            user
         });
 
         await this.save(task);
         return task;
     }
 
-    async getTaskByID(id: string): Promise<Task> {
-        const task = await this.findOneBy({ id });
+    async getTaskByID(id: string, user: User): Promise<Task> {
+        const task = await this.findOneBy({ id, user });
         if (!task) {
             throw new NotFoundException(`Task with ID ${id} not found`);
         }
         return task;
     }
 
-    async deleteTaskById(id: string): Promise<Task> {
-        const task = await this.getTaskByID(id);
+    async deleteTaskById(id: string, user: User): Promise<Task> {
+        const task = await this.getTaskByID(id, user);
         if (!task) {
             throw new NotFoundException(`Task with ID ${id} not found`);
         }
         await this.remove(task);
         return task;
     }
-    async findWithFilters(filterDto: SearchTaskDto): Promise<Task[]> {
+    async findWithFilters(filterDto: SearchTaskDto, user: User): Promise<Task[]> {
         const { status, search } = filterDto;
         const query = this.createQueryBuilder('task');
+        query.where({ user });
         if (status) {
             query.andWhere('task.status = :status', { status });
         }
